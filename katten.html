@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Kattenlogboek</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Nunito', sans-serif; background: #f7f5f0; color: #1c1c1a; min-height: 100vh; }
+::-webkit-scrollbar { display: none; }
+
+.topbar { background: #2c2c28; padding: 16px 20px 20px; border-radius: 0 0 24px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+.topbar-title { font-size: 20px; font-weight: 900; color: #f5f0e8; }
+.topbar-sub { font-size: 11px; color: rgba(245,240,232,0.4); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 1px; }
+.topbar-badge { background: rgba(255,255,255,0.12); color: #f5f0e8; font-size: 13px; font-weight: 800; padding: 5px 12px; border-radius: 20px; }
+.back-btn { background: rgba(255,255,255,0.15); border: none; color: #f5f0e8; font-size: 18px; padding: 6px 11px; border-radius: 12px; cursor: pointer; }
+
+.main { padding: 16px; max-width: 480px; margin: 0 auto; padding-bottom: 90px; }
+
+.alert-banner { background: #fff8ed; border: 1.5px solid #f0d9a8; border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; }
+.alert-title { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #9a7840; margin-bottom: 8px; }
+.alert-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f5edda; font-size: 13px; font-weight: 600; cursor: pointer; }
+.alert-row:last-child { border-bottom: none; }
+.alert-badge { font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 20px; }
+.badge-urgent { background: #fee2e2; color: #b91c1c; }
+.badge-soon { background: #fef3c7; color: #92400e; }
+
+.cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.cat-card { border-radius: 16px; padding: 16px; cursor: pointer; transition: all 0.15s; position: relative; border: 2px solid transparent; }
+.cat-card:active { transform: scale(0.97); }
+.cat-alert-dot { position: absolute; top: 10px; right: 10px; width: 9px; height: 9px; background: #ef4444; border-radius: 50%; }
+.cat-emoji { font-size: 30px; margin-bottom: 8px; }
+.cat-name { font-size: 16px; font-weight: 900; margin-bottom: 2px; }
+.cat-meta { font-size: 12px; opacity: 0.6; font-weight: 600; }
+.cat-count { font-size: 11px; font-weight: 700; margin-top: 5px; opacity: 0.55; }
+
+.cat-hero { padding: 16px 16px 0; }
+.cat-hero-inner { border-radius: 20px; padding: 20px; }
+.cat-hero-emoji { font-size: 44px; margin-bottom: 10px; }
+.cat-hero-name { font-size: 26px; font-weight: 900; margin-bottom: 4px; }
+.cat-hero-meta { font-size: 13px; opacity: 0.6; font-weight: 600; }
+.cat-notes-box { background: rgba(255,255,255,0.5); border-radius: 10px; padding: 10px 12px; margin-top: 10px; font-size: 13px; font-weight: 600; color: #444; line-height: 1.6; }
+
+.events-wrap { padding: 14px 16px; }
+.section-lbl { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #999; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+.filter-row { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; padding-bottom: 2px; }
+.fchip { border: 1.5px solid #ddd8cf; background: white; color: #666; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 20px; cursor: pointer; white-space: nowrap; font-family: inherit; }
+.fchip.active { background: #2c2c28; border-color: #2c2c28; color: white; }
+
+.event-card { background: white; border-radius: 12px; border: 1.5px solid #ede8e0; padding: 12px 14px; margin-bottom: 8px; display: flex; gap: 10px; align-items: flex-start; }
+.event-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.event-body { flex: 1; min-width: 0; }
+.event-type { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: #8b6f47; }
+.event-desc { font-size: 14px; font-weight: 600; margin-top: 2px; line-height: 1.4; }
+.event-date { font-size: 12px; color: #aaa; margin-top: 4px; font-weight: 600; }
+.event-next { font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 20px; display: inline-block; margin-top: 5px; }
+.event-del { background: none; border: none; cursor: pointer; color: #ccc; font-size: 16px; flex-shrink: 0; padding: 2px; }
+
+.empty-events { text-align: center; padding: 28px 20px; color: #bbb; font-size: 14px; font-weight: 600; }
+
+.form-wrap { padding: 16px; max-width: 480px; margin: 0 auto; padding-bottom: 60px; }
+.fg { margin-bottom: 14px; }
+.fl { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; margin-bottom: 6px; display: block; }
+.fi { width: 100%; border: 2px solid #ddd8cf; border-radius: 12px; padding: 11px 14px; font-family: inherit; font-size: 14px; font-weight: 600; outline: none; background: white; color: #1c1c1a; }
+.fi:focus { border-color: #8b6f47; }
+.fi-ta { min-height: 80px; resize: vertical; }
+select.fi { appearance: none; }
+
+.type-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.type-btn { border: 2px solid #ddd8cf; background: white; border-radius: 10px; padding: 10px 6px; text-align: center; cursor: pointer; font-size: 12px; font-weight: 700; font-family: inherit; transition: all 0.12s; }
+.type-btn .ti { font-size: 20px; display: block; margin-bottom: 4px; }
+.type-btn.selected { border-color: #8b6f47; background: #faf5ee; color: #8b6f47; }
+
+.btn-save { background: #2c2c28; color: #f5f0e8; padding: 13px; font-size: 15px; font-weight: 900; border: none; border-radius: 16px; width: 100%; font-family: inherit; cursor: pointer; }
+.btn-cancel { background: white; color: #1c1c1a; padding: 11px; font-size: 14px; font-weight: 800; border: 2px solid #e8e0d8; border-radius: 14px; width: 100%; font-family: inherit; cursor: pointer; margin-top: 10px; }
+
+.fab { position: fixed; bottom: 22px; right: 20px; background: #8b6f47; color: white; width: 52px; height: 52px; border-radius: 50%; font-size: 26px; font-weight: 900; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(139,111,71,0.4); line-height: 1; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 50; display: flex; align-items: flex-end; justify-content: center; }
+.modal-overlay.hidden { display: none !important; }
+.modal-box { background: white; border-radius: 24px 24px 0 0; padding: 22px 20px 32px; width: 100%; max-width: 480px; }
+.modal-title { font-size: 18px; font-weight: 900; margin-bottom: 6px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+.btn-mo-cancel { flex:1; background: #f2f0eb; color: #1c1c1a; border: none; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 800; font-family: inherit; cursor: pointer; }
+.btn-mo-del { flex:1; background: #fee2e2; color: #b91c1c; border: none; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 800; font-family: inherit; cursor: pointer; }
+
+.hidden { display: none; }
+</style>
+
+</head>
+<body>
+
+<div id="view-home">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Kattenlogboek</div>
+      <div class="topbar-sub">Alfred</div>
+    </div>
+    <span class="topbar-badge">6 katten</span>
+  </div>
+  <div class="main">
+    <div id="alert-section"></div>
+    <div class="cat-grid" id="cat-grid"></div>
+  </div>
+</div>
+
+<div id="view-cat" class="hidden">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="ct-name"></div>
+      <div class="topbar-sub" id="ct-meta"></div>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="back-btn" onclick="showHome()">&#8592;</button>
+    </div>
+  </div>
+  <div class="cat-hero"><div class="cat-hero-inner" id="ct-hero"></div></div>
+  <div class="events-wrap">
+    <div class="section-lbl"><span id="ct-log-count">Logboek</span></div>
+    <div class="filter-row">
+      <button class="fchip active" id="ef-all" onclick="setEventFilter('all')">Alles</button>
+      <button class="fchip" id="ef-vaccinatie" onclick="setEventFilter('vaccinatie')">Vaccinatie</button>
+      <button class="fchip" id="ef-dierenarts" onclick="setEventFilter('dierenarts')">Dierenarts</button>
+      <button class="fchip" id="ef-medicatie" onclick="setEventFilter('medicatie')">Medicatie</button>
+      <button class="fchip" id="ef-behandeling" onclick="setEventFilter('behandeling')">Behandeling</button>
+      <button class="fchip" id="ef-notitie" onclick="setEventFilter('notitie')">Notitie</button>
+    </div>
+    <div id="event-list"></div>
+  </div>
+  <button class="fab" onclick="showAddEvent()">+</button>
+</div>
+
+<div id="view-add-event" class="hidden">
+  <div class="topbar">
+    <div class="topbar-title" style="color:#f5f0e8;font-size:18px;font-weight:900">Nieuw item</div>
+    <button class="back-btn" onclick="showCat(currentCatId)">&#x2715;</button>
+  </div>
+  <div class="form-wrap">
+    <div class="fg">
+      <label class="fl">Type</label>
+      <div class="type-grid">
+        <button class="type-btn selected" id="tb-vaccinatie" onclick="selType('vaccinatie')"><span class="ti">&#128137;</span>Vaccinatie</button>
+        <button class="type-btn" id="tb-dierenarts" onclick="selType('dierenarts')"><span class="ti">&#127973;</span>Dierenarts</button>
+        <button class="type-btn" id="tb-medicatie" onclick="selType('medicatie')"><span class="ti">&#128138;</span>Medicatie</button>
+        <button class="type-btn" id="tb-behandeling" onclick="selType('behandeling')"><span class="ti">&#129514;</span>Behandeling</button>
+        <button class="type-btn" id="tb-gewicht" onclick="selType('gewicht')"><span class="ti">&#9878;</span>Gewicht</button>
+        <button class="type-btn" id="tb-notitie" onclick="selType('notitie')"><span class="ti">&#128221;</span>Notitie</button>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">Omschrijving *</label>
+      <textarea class="fi fi-ta" id="ae-desc" placeholder="Bijv. jaarlijkse entingen"></textarea>
+    </div>
+    <div class="fg">
+      <label class="fl">Datum</label>
+      <input type="date" class="fi" id="ae-date">
+    </div>
+    <div class="fg">
+      <label class="fl">Volgende afspraak / herhaling</label>
+      <input type="date" class="fi" id="ae-next">
+    </div>
+    <div class="fg">
+      <label class="fl">Dierenarts / kliniek</label>
+      <input class="fi" id="ae-vet" placeholder="Bijv. De Grote Vriend, Rosmalen">
+    </div>
+    <button class="btn-save" onclick="doSaveEvent()">Opslaan</button>
+    <button class="btn-cancel" onclick="showCat(currentCatId)">Annuleren</button>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="del-modal">
+  <div class="modal-box">
+    <div class="modal-title">Item verwijderen?</div>
+    <div style="font-size:14px;font-weight:600;color:#888">Dit kan niet ongedaan worden gemaakt.</div>
+    <div class="modal-actions">
+      <button class="btn-mo-cancel" onclick="closeDelModal()">Annuleren</button>
+      <button class="btn-mo-del" onclick="doDeleteEvent()">Verwijderen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SK = 'katten-logboek-v2';
+
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+
+function daysUntil(d) {
+  if (!d) return null;
+  const t = new Date(d); t.setHours(0,0,0,0);
+  return Math.round((t - TODAY) / 86400000);
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  const [y,m,day] = d.split('-');
+  return day + '-' + m + '-' + y;
+}
+
+function catAge(born) {
+  if (!born) return '';
+  const parts = born.split('/');
+  const y = parseInt(parts[2] || parts[0]);
+  const age = TODAY.getFullYear() - y;
+  return age + ' jaar';
+}
+
+const CATS_DEFAULT = [
+  { id:'ariel', name:'Ariel', emoji:'🐱', color:'#e8d5c4', born:'16/05/2011', breed:'Europese korthaar', sterilized:true, notes:'Geen vaccinaties - bewuste keuze. Binnenpoes.', events:[] },
+  { id:'pip', name:'Pip', emoji:'🐾', color:'#c4d8e8', born:'01/05/2016', breed:'Europese korthaar', sterilized:true, notes:'Gaat naar pension \'t Haagje in Schijndel bij vakantie. Binnenpoes.', events:[
+    { id:'p1', type:'vaccinatie', icon:'💉', label:'Vaccinatie', desc:'Jaarlijkse vaccinatie', date:'2025-12-03', nextDate:'2026-12-03', vet:'De Grote Vriend, Rosmalen' }
+  ]},
+  { id:'marshmallow', name:'Marshmallow', emoji:'☁️', color:'#e8e4c4', born:'08/05/2020', breed:'Europese korthaar', sterilized:true, notes:'Geen vaccinaties - bewuste keuze. Mogelijke allergie dierlijke eiwitten (bevestigd, lijkt niet meer actueel). Binnenpoes.', events:[] },
+  { id:'blueberry', name:'Blueberry', emoji:'🫐', color:'#c4c8e8', born:'08/05/2020', breed:'Europese korthaar', sterilized:true, notes:'Geen vaccinaties - bewuste keuze. Zelfde situatie als Marshmallow qua allergie. Binnenpoes.', events:[] },
+  { id:'raya', name:'Raya', emoji:'✨', color:'#e8c4d8', born:'30/11/2023', breed:'Maine Coon', sterilized:false, notes:'NIET gesteriliseerd - heeft Superlorin implantaat (geplaatst 11/03/2026, geldig 1-3 jaar, werkt uit als ze weer krols wordt). Slecht tandvlees - bespreken bij dierenarts. Gebruikt tandpasta. Binnenpoes.', events:[
+    { id:'r1', type:'vaccinatie', icon:'💉', label:'Vaccinatie', desc:'Jaarlijkse vaccinatie', date:'2025-05-24', nextDate:'2026-05-24', vet:'De Grote Vriend, Rosmalen' },
+    { id:'r2', type:'behandeling', icon:'🩺', label:'Behandeling', desc:'Superlorin implantaat geplaatst - anticonceptie 1-3 jaar', date:'2026-03-11', nextDate:null, vet:'De Grote Vriend, Rosmalen' }
+  ]},
+  { id:'lullah', name:'Lullah', emoji:'🌿', color:'#c4e8d4', born:'12/02/2024', breed:'Maine Coon', sterilized:true, notes:'Binnenpoes.', events:[
+    { id:'l1', type:'vaccinatie', icon:'💉', label:'Vaccinatie', desc:'Eerste vaccinatie', date:'2026-03-25', nextDate:'2027-03-25', vet:'De Grote Vriend, Rosmalen' }
+  ]}
+];
+
+let cats = [];
+let currentCatId = null;
+let currentEventFilter = 'all';
+let deleteEventId = null;
+let addEventType = 'vaccinatie';
+
+function load() {
+  try {
+    const s = localStorage.getItem(SK);
+    cats = s ? JSON.parse(s) : JSON.parse(JSON.stringify(CATS_DEFAULT));
+  } catch(e) { cats = JSON.parse(JSON.stringify(CATS_DEFAULT)); }
+}
+
+function persist() { try { localStorage.setItem(SK, JSON.stringify(cats)); } catch(e) {} }
+
+function getCat(id) { return cats.find(c => c.id === id); }
+
+function upcomingAlerts() {
+  const alerts = [];
+  cats.forEach(cat => {
+    (cat.events||[]).forEach(ev => {
+      if (ev.nextDate) {
+        const d = daysUntil(ev.nextDate);
+        if (d !== null && d <= 60) alerts.push({ cat, event:ev, days:d });
+      }
+    });
+  });
+  return alerts.sort((a,b) => a.days - b.days);
+}
+
+function renderHome() {
+  const alerts = upcomingAlerts();
+  const sec = document.getElementById('alert-section');
+  if (alerts.length > 0) {
+    sec.innerHTML = '<div class="alert-banner"><div class="alert-title">Aandacht vereist</div>' +
+      alerts.map(a => {
+        const cls = a.days < 0 ? 'badge-urgent' : a.days <= 14 ? 'badge-urgent' : 'badge-soon';
+        const lbl = a.days < 0 ? Math.abs(a.days) + 'd over' : a.days === 0 ? 'vandaag' : a.days + 'd';
+        return '<div class="alert-row" onclick="showCat(\'' + a.cat.id + '\')">' +
+          '<span>' + a.cat.emoji + ' <strong>' + a.cat.name + '</strong> - ' + a.event.label + ': ' + a.event.desc.substring(0,35) + (a.event.desc.length>35?'...':'') + '</span>' +
+          '<span class="alert-badge ' + cls + '">' + lbl + '</span></div>';
+      }).join('') + '</div>';
+  } else { sec.innerHTML = ''; }
+
+  const grid = document.getElementById('cat-grid');
+  grid.innerHTML = cats.map(cat => {
+    const hasAlert = (cat.events||[]).some(ev => { if (!ev.nextDate) return false; const d = daysUntil(ev.nextDate); return d !== null && d <= 30; });
+    return '<div class="cat-card" style="background:' + cat.color + '55;border-color:' + cat.color + '" onclick="showCat(\'' + cat.id + '\')">' +
+      (hasAlert ? '<div class="cat-alert-dot"></div>' : '') +
+      '<div class="cat-emoji">' + cat.emoji + '</div>' +
+      '<div class="cat-name">' + cat.name + '</div>' +
+      '<div class="cat-meta">' + cat.breed + '</div>' +
+      '<div class="cat-meta">' + catAge(cat.born) + '</div>' +
+      '<div class="cat-count">' + (cat.events||[]).length + ' item' + ((cat.events||[]).length !== 1 ? 's' : '') + '</div></div>';
+  }).join('');
+}
+
+function showView(id) {
+  ['view-home','view-cat','view-add-event'].forEach(v => document.getElementById(v).classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  window.scrollTo(0,0);
+}
+
+function showHome() { showView('view-home'); renderHome(); }
+
+function showCat(id) {
+  currentCatId = id;
+  currentEventFilter = 'all';
+  const cat = getCat(id);
+  document.getElementById('ct-name').textContent = cat.name;
+  document.getElementById('ct-meta').textContent = cat.breed + ' - ' + catAge(cat.born) + (cat.sterilized ? ' - gesteriliseerd' : ' - niet gesteriliseerd');
+  document.getElementById('ct-hero').style.background = cat.color + '55';
+  document.getElementById('ct-hero').innerHTML =
+    '<div class="cat-hero-emoji">' + cat.emoji + '</div>' +
+    '<div class="cat-hero-name">' + cat.name + '</div>' +
+    '<div class="cat-hero-meta">' + cat.breed + ' - geboren ' + cat.born + ' - ' + catAge(cat.born) + '</div>' +
+    (cat.notes ? '<div class="cat-notes-box">📌 ' + cat.notes + '</div>' : '');
+  ['all','vaccinatie','dierenarts','medicatie','behandeling','notitie'].forEach(f => document.getElementById('ef-'+f).classList.toggle('active', f==='all'));
+  showView('view-cat');
+  renderEvents();
+}
+
+function setEventFilter(f) {
+  currentEventFilter = f;
+  ['all','vaccinatie','dierenarts','medicatie','behandeling','notitie'].forEach(x => document.getElementById('ef-'+x).classList.toggle('active', x===f));
+  renderEvents();
+}
+
+function renderEvents() {
+  const cat = getCat(currentCatId);
+  let evs = cat.events || [];
+  if (currentEventFilter !== 'all') evs = evs.filter(e => e.type === currentEventFilter);
+  document.getElementById('ct-log-count').textContent = 'Logboek (' + (cat.events||[]).length + ')';
+  const el = document.getElementById('event-list');
+  if (evs.length === 0) { el.innerHTML = '<div class="empty-events">Nog geen items. Tap + om toe te voegen.</div>'; return; }
+  el.innerHTML = evs.map(ev => {
+    const d = ev.nextDate ? daysUntil(ev.nextDate) : null;
+    let badgeCls = '', badgeLbl = '';
+    if (d !== null) {
+      badgeCls = d < 0 ? 'badge-urgent' : d <= 14 ? 'badge-urgent' : 'badge-soon';
+      badgeLbl = d < 0 ? Math.abs(d) + 'd geleden gepland' : d === 0 ? 'vandaag' : 'over ' + d + 'd';
+    }
+    return '<div class="event-card">' +
+      '<div class="event-icon">' + ev.icon + '</div>' +
+      '<div class="event-body">' +
+      '<div class="event-type">' + ev.label + '</div>' +
+      '<div class="event-desc">' + ev.desc + '</div>' +
+      (ev.vet ? '<div class="event-date">🏥 ' + ev.vet + '</div>' : '') +
+      '<div class="event-date">📅 ' + fmtDate(ev.date) + '</div>' +
+      (ev.nextDate ? '<span class="event-next ' + badgeCls + '">🔔 Volgende: ' + fmtDate(ev.nextDate) + (badgeLbl ? ' - ' + badgeLbl : '') + '</span>' : '') +
+      '</div>' +
+      '<button class="event-del" onclick="confirmDelEvent(\'' + ev.id + '\')">&#x2715;</button></div>';
+  }).join('');
+}
+
+function showAddEvent() {
+  addEventType = 'vaccinatie';
+  document.getElementById('ae-desc').value = '';
+  document.getElementById('ae-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('ae-next').value = '';
+  document.getElementById('ae-vet').value = 'De Grote Vriend, Rosmalen';
+  ['vaccinatie','dierenarts','medicatie','behandeling','gewicht','notitie'].forEach(t => document.getElementById('tb-'+t).classList.toggle('selected', t==='vaccinatie'));
+  showView('view-add-event');
+}
+
+function selType(t) {
+  addEventType = t;
+  ['vaccinatie','dierenarts','medicatie','behandeling','gewicht','notitie'].forEach(x => document.getElementById('tb-'+x).classList.toggle('selected', x===t));
+}
+
+const TYPE_INFO = {
+  vaccinatie: { icon:'💉', label:'Vaccinatie' },
+  dierenarts: { icon:'🏥', label:'Dierenarts' },
+  medicatie:  { icon:'💊', label:'Medicatie' },
+  behandeling:{ icon:'🩺', label:'Behandeling' },
+  gewicht:    { icon:'⚖️', label:'Gewicht' },
+  notitie:    { icon:'📝', label:'Notitie' }
+};
+
+function doSaveEvent() {
+  const desc = document.getElementById('ae-desc').value.trim();
+  if (!desc) { alert('Omschrijving is verplicht'); return; }
+  const cat = getCat(currentCatId);
+  const info = TYPE_INFO[addEventType];
+  const ev = { id: Date.now().toString(), type: addEventType, icon: info.icon, label: info.label, desc, date: document.getElementById('ae-date').value, nextDate: document.getElementById('ae-next').value || null, vet: document.getElementById('ae-vet').value.trim() };
+  if (!cat.events) cat.events = [];
+  cat.events.unshift(ev);
+  persist();
+  showCat(currentCatId);
+}
+
+function confirmDelEvent(id) { deleteEventId = id; document.getElementById('del-modal').classList.remove('hidden'); }
+function closeDelModal() { document.getElementById('del-modal').classList.add('hidden'); deleteEventId = null; }
+function doDeleteEvent() {
+  const cat = getCat(currentCatId);
+  cat.events = (cat.events||[]).filter(e => e.id !== deleteEventId);
+  persist(); closeDelModal(); renderEvents();
+}
+
+load();
+renderHome();
+</script>
+
+</body>
+</html>
