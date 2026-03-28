@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Vakantie Checklist</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Nunito', sans-serif; background: #f2f0eb; color: #1a1916; min-height: 100vh; }
+::-webkit-scrollbar { display: none; }
+
+.topbar { background: #1a1916; padding: 16px 20px 20px; border-radius: 0 0 24px 24px; position: sticky; top: 0; z-index: 10; }
+.topbar-inner { display: flex; align-items: center; justify-content: space-between; }
+.topbar-title { font-size: 18px; font-weight: 900; color: #f2f0eb; }
+.topbar-sub { font-size: 11px; color: rgba(242,240,235,0.4); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 2px; }
+.topbar-days { font-size: 28px; font-weight: 900; color: #f5c842; line-height: 1; }
+.topbar-days-lbl { font-size: 11px; color: rgba(242,240,235,0.5); text-align: right; }
+.progress-track { background: rgba(255,255,255,0.1); height: 6px; border-radius: 3px; margin-top: 12px; }
+.progress-fill { height: 6px; border-radius: 3px; background: #f5c842; transition: width 0.4s; }
+.progress-lbl { font-size: 12px; color: rgba(242,240,235,0.5); display: flex; justify-content: space-between; margin-top: 5px; }
+.progress-pct { color: #f5c842; font-weight: 700; }
+
+.main { padding: 16px; max-width: 480px; margin: 0 auto; padding-bottom: 90px; }
+
+.trip-card { background: white; border-radius: 18px; padding: 16px 18px; margin-bottom: 16px; border: 1.5px solid #e8e4db; }
+.trip-card-top { display: flex; align-items: center; justify-content: space-between; }
+.trip-dates { font-size: 15px; font-weight: 900; margin-bottom: 2px; }
+.trip-info { font-size: 13px; color: #666; }
+.trip-travelers { font-size: 12px; color: #aaa; margin-top: 3px; }
+.trip-edit-btn { background: #f2f0eb; border: none; border-radius: 10px; padding: 7px 12px; font-size: 12px; font-weight: 800; color: #666; cursor: pointer; font-family: inherit; }
+
+.new-trip-btn { background: #f5c842; color: #1a1916; border: none; border-radius: 14px; padding: 11px 18px; font-size: 14px; font-weight: 900; cursor: pointer; font-family: inherit; width: 100%; margin-bottom: 14px; box-shadow: 0 3px 0 #c9a020; }
+
+.phase-card { border-radius: 14px; margin-bottom: 12px; overflow: hidden; cursor: pointer; border: 1.5px solid transparent; }
+.phase-card:active { transform: scale(0.98); }
+.phase-header { padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; }
+.phase-label { font-size: 15px; font-weight: 900; }
+.phase-sublabel { font-size: 12px; opacity: 0.65; margin-top: 1px; }
+.phase-count { font-size: 20px; font-weight: 900; text-align: right; }
+.phase-count-lbl { font-size: 11px; opacity: 0.6; }
+.phase-mini-bar { height: 4px; background: rgba(0,0,0,0.08); }
+.phase-mini-fill { height: 4px; transition: width 0.3s; }
+
+.back-btn { background: rgba(255,255,255,0.15); border: none; color: #f2f0eb; font-size: 18px; padding: 6px 11px; border-radius: 12px; cursor: pointer; }
+.filter-row { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 2px; }
+.fchip { border: 1.5px solid #ddd8cf; background: white; color: #666; font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 20px; cursor: pointer; font-family: inherit; white-space: nowrap; }
+.fchip.active { background: #1a1916; border-color: #1a1916; color: white; }
+
+.cat-group { margin-bottom: 18px; }
+.cat-lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #aaa; margin-bottom: 8px; font-weight: 700; }
+
+.item-row { background: white; border-radius: 10px; border: 1.5px solid #e8e4db; padding: 12px 14px; margin-bottom: 7px; display: flex; gap: 10px; align-items: flex-start; }
+.item-row.done { opacity: 0.45; }
+.item-row.done .item-text { text-decoration: line-through; color: #aaa; }
+.checkbox { width: 22px; height: 22px; border-radius: 7px; border: 2px solid #ddd; cursor: pointer; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; background: white; transition: all 0.15s; font-size: 13px; color: white; font-weight: 900; }
+.checkbox.checked { background: #1a1916; border-color: #1a1916; }
+.item-body { flex: 1; min-width: 0; }
+.item-text { font-size: 14px; font-weight: 600; line-height: 1.4; }
+.item-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+.item-tag { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 12px; background: #f2f0eb; color: #888; }
+.item-note { font-size: 12px; color: #aaa; margin-top: 4px; line-height: 1.4; font-weight: 600; }
+.item-del { background: none; border: none; cursor: pointer; color: #ccc; font-size: 16px; flex-shrink: 0; padding: 2px; }
+.item-del:active { color: #e8472a; }
+
+.form-wrap { padding: 16px; max-width: 480px; margin: 0 auto; padding-bottom: 60px; }
+.fg { margin-bottom: 14px; }
+.fl { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; margin-bottom: 6px; display: block; }
+.fi { width: 100%; border: 2px solid #ddd8cf; border-radius: 12px; padding: 11px 14px; font-family: inherit; font-size: 14px; font-weight: 600; outline: none; background: white; color: #1a1916; }
+.fi:focus { border-color: #1a1916; }
+.fi-ta { min-height: 70px; resize: vertical; }
+select.fi { appearance: none; }
+.fi-date { -webkit-appearance: none; }
+
+.phase-btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.phase-sel { border: 2px solid #e8e4db; background: white; border-radius: 10px; padding: 10px 12px; cursor: pointer; text-align: left; font-family: inherit; transition: all 0.12s; width: 100%; }
+.phase-sel.selected { border-color: #1a1916; background: #1a1916; color: white; }
+.phase-sel-lbl { font-size: 13px; font-weight: 800; }
+.phase-sel-sub { font-size: 11px; opacity: 0.6; margin-top: 2px; }
+
+.btn-save { background: #1a1916; color: #f2f0eb; padding: 13px; font-size: 15px; font-weight: 900; border: none; border-radius: 16px; width: 100%; font-family: inherit; cursor: pointer; }
+.btn-cancel { background: white; color: #1a1916; padding: 11px; font-size: 14px; font-weight: 800; border: 2px solid #e8e4db; border-radius: 14px; width: 100%; font-family: inherit; cursor: pointer; margin-top: 10px; }
+
+.fab { position: fixed; bottom: 22px; right: 20px; background: #f5c842; color: #1a1916; width: 52px; height: 52px; border-radius: 50%; font-size: 26px; font-weight: 900; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(245,200,66,0.4); line-height: 1; }
+
+.section-lbl { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #B8AFA5; margin-bottom: 10px; }
+.empty { text-align: center; padding: 30px; color: #ccc; font-size: 14px; font-weight: 600; }
+.hidden { display: none; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(26,25,22,0.5); z-index: 50; display: flex; align-items: flex-end; justify-content: center; }
+.modal-box { background: white; border-radius: 24px 24px 0 0; padding: 24px 20px 32px; width: 100%; max-width: 480px; }
+.modal-title { font-size: 18px; font-weight: 900; margin-bottom: 16px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+.btn-mo-cancel { flex: 1; background: #f2f0eb; color: #1a1916; border: none; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 800; font-family: inherit; cursor: pointer; }
+.btn-mo-ok { flex: 1; background: #e8472a; color: white; border: none; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 800; font-family: inherit; cursor: pointer; }
+</style>
+
+</head>
+<body>
+
+<!-- HOME -->
+
+<div id="view-home">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div>
+        <div class="topbar-title" id="h-trip-name">Vakantie</div>
+        <div class="topbar-sub">Checklist</div>
+      </div>
+      <div style="text-align:right">
+        <div class="topbar-days" id="h-days">--</div>
+        <div class="topbar-days-lbl">dagen tot vertrek</div>
+      </div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="h-bar" style="width:0%"></div></div>
+    <div class="progress-lbl"><span id="h-progress">0 van 0 gedaan</span><span class="progress-pct" id="h-pct">0%</span></div>
+  </div>
+  <div class="main">
+    <div class="trip-card" id="trip-card"></div>
+    <button class="new-trip-btn" onclick="showNewTrip()">+ Nieuwe vakantie starten</button>
+    <div class="section-lbl">Fases</div>
+    <div id="phase-list"></div>
+  </div>
+  <button class="fab" onclick="showAddItem(null)">+</button>
+</div>
+
+<!-- PHASE DETAIL -->
+
+<div id="view-phase" class="hidden">
+  <div class="topbar" id="phase-topbar">
+    <div class="topbar-inner">
+      <div>
+        <div class="topbar-title" id="p-title"></div>
+        <div class="topbar-sub" id="p-sub"></div>
+      </div>
+      <button class="back-btn" onclick="showHome()">&#8592;</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="filter-row">
+      <button class="fchip active" id="f-all" onclick="setFilter('all')">Alles</button>
+      <button class="fchip" id="f-open" onclick="setFilter('open')">Open</button>
+      <button class="fchip" id="f-done" onclick="setFilter('done')">Gedaan</button>
+    </div>
+    <div id="phase-items"></div>
+  </div>
+  <button class="fab" onclick="showAddItem(currentPhase)">+</button>
+</div>
+
+<!-- ADD ITEM -->
+
+<div id="view-add-item" class="hidden">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-title">Nieuw item</div>
+      <button class="back-btn" onclick="cancelAddItem()">&#x2715;</button>
+    </div>
+  </div>
+  <div class="form-wrap">
+    <div class="fg">
+      <label class="fl">Fase</label>
+      <div class="phase-btn-grid" id="add-phase-btns"></div>
+    </div>
+    <div class="fg">
+      <label class="fl">Categorie</label>
+      <select class="fi" id="ai-cat">
+        <option>Reisdocumenten</option><option>Tickets en Reserveringen</option>
+        <option>Katten</option><option>Lynn</option><option>Huis</option>
+        <option>Reizen</option><option>Financien</option><option>Gezondheid</option>
+        <option>Inpakken</option><option>Overig</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">Taak *</label>
+      <textarea class="fi fi-ta" id="ai-task" placeholder="Wat moet er geregeld worden?"></textarea>
+    </div>
+    <div class="fg">
+      <label class="fl">Wie</label>
+      <select class="fi" id="ai-who">
+        <option>Sharon</option><option>John</option><option>Lynn</option><option>Allen</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">Notitie (optioneel)</label>
+      <input class="fi" id="ai-note" placeholder="Extra context of tip">
+    </div>
+    <button class="btn-save" onclick="doSaveItem()">Toevoegen</button>
+    <button class="btn-cancel" onclick="cancelAddItem()">Annuleren</button>
+  </div>
+</div>
+
+<!-- NEW TRIP -->
+
+<div id="view-new-trip" class="hidden">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-title" id="nt-title">Nieuwe vakantie</div>
+      <button class="back-btn" onclick="cancelNewTrip()">&#x2715;</button>
+    </div>
+  </div>
+  <div class="form-wrap">
+    <div style="background:#fff8ed;border:1.5px solid #f5c842;border-radius:14px;padding:14px;margin-bottom:18px;font-size:13px;font-weight:600;color:#7a6010;line-height:1.6">
+      Let op: als je een nieuwe vakantie start, worden de huidige items gewist. Sla eerst foto's van je lijst als je die wil bewaren.
+    </div>
+    <div class="fg">
+      <label class="fl">Naam van de vakantie</label>
+      <input class="fi" id="nt-name" placeholder="Bijv. Disney Orlando Juli 2026">
+    </div>
+    <div class="fg">
+      <label class="fl">Vertrekdatum</label>
+      <input type="date" class="fi fi-date" id="nt-dep">
+    </div>
+    <div class="fg">
+      <label class="fl">Terugkomstdatum</label>
+      <input type="date" class="fi fi-date" id="nt-ret">
+    </div>
+    <div class="fg">
+      <label class="fl">Bestemming</label>
+      <input class="fi" id="nt-dest" placeholder="Bijv. Orlando, Florida">
+    </div>
+    <div class="fg">
+      <label class="fl">Reizigers</label>
+      <input class="fi" id="nt-travelers" placeholder="Bijv. Sharon, John, Lynn">
+    </div>
+    <div class="fg">
+      <label class="fl">Standaard checklist laden?</label>
+      <select class="fi" id="nt-template">
+        <option value="blank">Lege lijst - ik voeg zelf alles toe</option>
+        <option value="default">Standaard vakantie checklist</option>
+      </select>
+    </div>
+    <button class="btn-save" onclick="doNewTrip()">Vakantie aanmaken</button>
+    <button class="btn-cancel" onclick="cancelNewTrip()">Annuleren</button>
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+
+<div class="modal-overlay hidden" id="del-modal">
+  <div class="modal-box">
+    <div class="modal-title">Item verwijderen?</div>
+    <div style="font-size:14px;font-weight:600;color:#888">Dit kan niet ongedaan worden gemaakt.</div>
+    <div class="modal-actions">
+      <button class="btn-mo-cancel" onclick="closeDelModal()">Annuleren</button>
+      <button class="btn-mo-ok" onclick="doDeleteItem()">Verwijderen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SK = 'vakantie-v2';
+
+const PHASES = [
+  { id:1, label:'Nu meteen', sub:'Zo snel mogelijk', color:'#e8472a', light:'#fff2f0' },
+  { id:2, label:'4 weken voor', sub:'Uiterlijk begin april', color:'#e8892a', light:'#fff8f0' },
+  { id:3, label:'2 weken voor', sub:'Uiterlijk 10 april', color:'#4a90c4', light:'#f0f7ff' },
+  { id:4, label:'Vertrekweek', sub:'Week van vertrek', color:'#3aaa6a', light:'#f0fff7' }
+];
+
+const DEFAULT_TEMPLATE = [
+  { phase:1, category:'Reisdocumenten', text:'Paspoorten controleren - geldigheid alle reizigers', assignee:'Sharon', note:'Minimaal 6 maanden geldig na terugkomst' },
+  { phase:1, category:'Reisdocumenten', text:'ESTA of visum regelen indien nodig', assignee:'Sharon', note:'' },
+  { phase:1, category:'Tickets en Reserveringen', text:'Vluchten boeken', assignee:'Sharon', note:'' },
+  { phase:1, category:'Tickets en Reserveringen', text:'Accommodatie boeken', assignee:'Sharon', note:'' },
+  { phase:1, category:'Katten', text:'Pension voor Pip reserveren', assignee:'Sharon', note:'Vroeg vol - op tijd regelen' },
+  { phase:1, category:'Katten', text:'Huisoppas voor overige katten regelen', assignee:'Sharon', note:'Nienke en Jonneke contacteren' },
+  { phase:1, category:'Reizen', text:'Auto huren regelen', assignee:'Sharon', note:'' },
+  { phase:2, category:'Reizen', text:'Reisverzekering afsluiten', assignee:'Sharon', note:'Inclusief annulering en medische dekking' },
+  { phase:2, category:'Reizen', text:'Zorgverzekering buitenland controleren', assignee:'Sharon', note:'' },
+  { phase:2, category:'Lynn', text:'School informeren over afwezigheid', assignee:'Sharon', note:'' },
+  { phase:2, category:'Lynn', text:'Begeleiders informeren', assignee:'Sharon', note:'' },
+  { phase:2, category:'Katten', text:'Kattenbrokken en kattengrit inslaan', assignee:'Sharon', note:'Voor 2 weken plus buffer' },
+  { phase:2, category:'Huis', text:'Thijme inplannen voor tuin', assignee:'Sharon', note:'Meerdere reminders nodig' },
+  { phase:3, category:'Huis', text:'Silke informeren dat we weg zijn', assignee:'Sharon', note:'' },
+  { phase:3, category:'Huis', text:'Instructies schrijven voor kattenoppas', assignee:'Sharon', note:'Voerschema, medicatie, dierenarts contact' },
+  { phase:3, category:'Huis', text:'Sleutel afgeven bij oppas', assignee:'John', note:'' },
+  { phase:3, category:'Reizen', text:'Toll pass regelen indien nodig', assignee:'Sharon', note:'' },
+  { phase:3, category:'Financien', text:'Bank informeren over reisperiode', assignee:'Sharon', note:'' },
+  { phase:3, category:'Financien', text:'Buitenlandse valuta of reiskaart regelen', assignee:'Sharon', note:'' },
+  { phase:3, category:'Gezondheid', text:'Medicatie voldoende voorraad', assignee:'Sharon', note:'Voor hele reis plus reserve' },
+  { phase:3, category:'Reizen', text:'Stoelplaatsen reserveren vliegtuig', assignee:'Sharon', note:'' },
+  { phase:4, category:'Inpakken', text:'Koffers inpakken', assignee:'Allen', note:'' },
+  { phase:4, category:'Inpakken', text:'Handbagage checken op vloeistoffenregel', assignee:'Sharon', note:'' },
+  { phase:4, category:'Katten', text:'Pip naar pension brengen', assignee:'John', note:'' },
+  { phase:4, category:'Huis', text:'Huis klaar voor afwezigheid', assignee:'Allen', note:'Thermostaat, verlichting, brievenbus' },
+  { phase:4, category:'Reisdocumenten', text:'Alle reisdocumenten bij elkaar', assignee:'Sharon', note:'Paspoorten, verzekering, boekingen. Digitale kopie in cloud.' },
+  { phase:4, category:'Reisdocumenten', text:'Online inchecken 24u van tevoren', assignee:'Sharon', note:'' }
+];
+
+let data = { trip: null, items: [] };
+let currentPhase = null;
+let currentFilter = 'all';
+let addPhaseSelected = 1;
+let deleteItemId = null;
+
+function load() {
+  try {
+    const s = localStorage.getItem(SK);
+    if (s) data = JSON.parse(s);
+    else initDisney();
+  } catch(e) { initDisney(); }
+}
+
+function initDisney() {
+  data = {
+    trip: { name:'Disney & Orlando', departure:'2026-04-24', returnDate:'2026-05-07', destination:'Orlando, Florida', travelers:'Sharon, John, Lynn' },
+    items: DEFAULT_TEMPLATE.map((t,i) => ({ ...t, id: String(i+1), done: false }))
+  };
+  persist();
+}
+
+function persist() { try { localStorage.setItem(SK, JSON.stringify(data)); } catch(e) {} }
+
+function daysUntil() {
+  if (!data.trip) return '--';
+  const dep = new Date(data.trip.departure); const now = new Date(); now.setHours(0,0,0,0);
+  return Math.max(0, Math.round((dep - now) / 86400000));
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  const [y,m,day] = d.split('-');
+  return day + '-' + m + '-' + y;
+}
+
+function nights() {
+  if (!data.trip) return 0;
+  const a = new Date(data.trip.departure), b = new Date(data.trip.returnDate);
+  return Math.round((b-a)/86400000);
+}
+
+function updateHome() {
+  const trip = data.trip;
+  document.getElementById('h-trip-name').textContent = trip ? trip.name : 'Vakantie';
+  document.getElementById('h-days').textContent = daysUntil();
+  const done = data.items.filter(i => i.done).length;
+  const total = data.items.length;
+  const pct = total > 0 ? Math.round(done/total*100) : 0;
+  document.getElementById('h-bar').style.width = pct + '%';
+  document.getElementById('h-progress').textContent = done + ' van ' + total + ' gedaan';
+  document.getElementById('h-pct').textContent = pct + '%';
+
+  const tc = document.getElementById('trip-card');
+  if (trip) {
+    tc.innerHTML = '<div class="trip-card-top"><div>' +
+      '<div class="trip-dates">' + fmtDate(trip.departure) + ' &mdash; ' + fmtDate(trip.returnDate) + '</div>' +
+      '<div class="trip-info">' + trip.destination + ' &middot; ' + nights() + ' nachten</div>' +
+      '<div class="trip-travelers">&#9992;&#65039; ' + trip.travelers + '</div></div>' +
+      '<button class="trip-edit-btn" onclick="showEditTrip()">Bewerken</button></div>';
+  } else {
+    tc.innerHTML = '<div style="color:#aaa;font-size:14px;font-weight:600">Nog geen vakantie aangemaakt</div>';
+  }
+
+  const list = document.getElementById('phase-list');
+  list.innerHTML = PHASES.map(phase => {
+    const ph = data.items.filter(i => i.phase === phase.id);
+    const d2 = ph.filter(i => i.done).length;
+    const t2 = ph.length;
+    const pct2 = t2 > 0 ? (d2/t2*100) : 0;
+    return '<div class="phase-card" style="border-color:' + phase.color + '30" onclick="openPhase(' + phase.id + ')">' +
+      '<div class="phase-header" style="background:' + phase.light + '">' +
+      '<div><div class="phase-label" style="color:' + phase.color + '">' + phase.label + '</div>' +
+      '<div class="phase-sublabel" style="color:' + phase.color + '">' + phase.sub + '</div></div>' +
+      '<div><div class="phase-count" style="color:' + phase.color + '">' + d2 + '<span style="font-size:14px;opacity:0.5">/' + t2 + '</span></div>' +
+      '<div class="phase-count-lbl" style="color:' + phase.color + '">gedaan</div></div></div>' +
+      '<div class="phase-mini-bar"><div class="phase-mini-fill" style="width:' + pct2 + '%;background:' + phase.color + '"></div></div></div>';
+  }).join('');
+}
+
+function showView(id) {
+  ['view-home','view-phase','view-add-item','view-new-trip'].forEach(v => document.getElementById(v).classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  window.scrollTo(0,0);
+}
+
+function showHome() { showView('view-home'); updateHome(); }
+
+function openPhase(id) {
+  currentPhase = id;
+  currentFilter = 'all';
+  const phase = PHASES.find(p => p.id === id);
+  document.getElementById('phase-topbar').style.background = phase.color;
+  document.getElementById('p-title').textContent = phase.label;
+  const ph = data.items.filter(i => i.phase === id);
+  document.getElementById('p-sub').textContent = phase.sub + ' - ' + ph.filter(i=>i.done).length + '/' + ph.length + ' gedaan';
+  ['all','open','done'].forEach(x => document.getElementById('f-'+x).classList.toggle('active', x==='all'));
+  showView('view-phase');
+  renderPhaseItems();
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  ['all','open','done'].forEach(x => document.getElementById('f-'+x).classList.toggle('active', x===f));
+  renderPhaseItems();
+}
+
+function renderPhaseItems() {
+  let ph = data.items.filter(i => i.phase === currentPhase);
+  if (currentFilter === 'open') ph = ph.filter(i => !i.done);
+  if (currentFilter === 'done') ph = ph.filter(i => i.done);
+  const groups = {};
+  ph.forEach(item => { if (!groups[item.category]) groups[item.category]=[]; groups[item.category].push(item); });
+  const el = document.getElementById('phase-items');
+  if (ph.length === 0) { el.innerHTML='<div class="empty">Geen items in dit filter</div>'; return; }
+  el.innerHTML = Object.entries(groups).map(([cat,catItems]) =>
+    '<div class="cat-group"><div class="cat-lbl">' + cat + '</div>' +
+    catItems.map(item =>
+      '<div class="item-row' + (item.done?' done':'') + '">' +
+      '<div class="checkbox' + (item.done?' checked':'') + '" onclick="toggleItem(\'' + item.id + '\')">' + (item.done?'&#10003;':'') + '</div>' +
+      '<div class="item-body"><div class="item-text">' + item.text + '</div>' +
+      '<div class="item-meta">' + (item.assignee?'<span class="item-tag">&#128100; '+item.assignee+'</span>':'') + '</div>' +
+      (item.note?'<div class="item-note">&#128161; '+item.note+'</div>':'') + '</div>' +
+      '<button class="item-del" onclick="confirmDelete(\'' + item.id + '\')">&#x2715;</button></div>'
+    ).join('') + '</div>'
+  ).join('');
+
+  const phase = PHASES.find(p => p.id === currentPhase);
+  const ph2 = data.items.filter(i => i.phase === currentPhase);
+  document.getElementById('p-sub').textContent = phase.sub + ' - ' + ph2.filter(i=>i.done).length + '/' + ph2.length + ' gedaan';
+}
+
+function toggleItem(id) {
+  data.items = data.items.map(i => i.id===id ? {...i, done:!i.done} : i);
+  persist();
+  renderPhaseItems();
+  updateHome();
+}
+
+function confirmDelete(id) { deleteItemId=id; document.getElementById('del-modal').classList.remove('hidden'); }
+function closeDelModal() { document.getElementById('del-modal').classList.add('hidden'); deleteItemId=null; }
+function doDeleteItem() {
+  data.items = data.items.filter(i => i.id!==deleteItemId);
+  persist(); closeDelModal(); renderPhaseItems();
+}
+
+function showAddItem(phase) {
+  addPhaseSelected = phase || currentPhase || 1;
+  document.getElementById('ai-task').value='';
+  document.getElementById('ai-note').value='';
+  document.getElementById('add-phase-btns').innerHTML = PHASES.map(p =>
+    '<button class="phase-sel' + (p.id===addPhaseSelected?' selected':'') + '" onclick="selAddPhase('+p.id+')">' +
+    '<div class="phase-sel-lbl">'+p.label+'</div><div class="phase-sel-sub">'+p.sub+'</div></button>'
+  ).join('');
+  showView('view-add-item');
+}
+
+function selAddPhase(id) {
+  addPhaseSelected=id;
+  document.querySelectorAll('.phase-sel').forEach((b,i) => b.classList.toggle('selected', PHASES[i].id===id));
+}
+
+function cancelAddItem() { if (currentPhase) openPhase(currentPhase); else showHome(); }
+
+function doSaveItem() {
+  const text = document.getElementById('ai-task').value.trim();
+  if (!text) { alert('Taak is verplicht'); return; }
+  data.items.push({ id:Date.now().toString(), phase:addPhaseSelected, category:document.getElementById('ai-cat').value, text, assignee:document.getElementById('ai-who').value, note:document.getElementById('ai-note').value.trim(), done:false });
+  persist();
+  if (currentPhase) openPhase(currentPhase);
+  else showHome();
+}
+
+function showNewTrip() {
+  document.getElementById('nt-title').textContent = 'Nieuwe vakantie';
+  document.getElementById('nt-name').value='';
+  document.getElementById('nt-dep').value='';
+  document.getElementById('nt-ret').value='';
+  document.getElementById('nt-dest').value='';
+  document.getElementById('nt-travelers').value='Sharon, John, Lynn';
+  showView('view-new-trip');
+}
+
+function showEditTrip() {
+  if (!data.trip) return;
+  document.getElementById('nt-title').textContent = 'Reis bewerken';
+  document.getElementById('nt-name').value = data.trip.name||'';
+  document.getElementById('nt-dep').value = data.trip.departure||'';
+  document.getElementById('nt-ret').value = data.trip.returnDate||'';
+  document.getElementById('nt-dest').value = data.trip.destination||'';
+  document.getElementById('nt-travelers').value = data.trip.travelers||'';
+  document.getElementById('nt-template').value = 'blank';
+  showView('view-new-trip');
+}
+
+function cancelNewTrip() { showHome(); }
+
+function doNewTrip() {
+  const name = document.getElementById('nt-name').value.trim();
+  const dep = document.getElementById('nt-dep').value;
+  if (!name || !dep) { alert('Naam en vertrekdatum zijn verplicht'); return; }
+  const isNew = document.getElementById('nt-title').textContent === 'Nieuwe vakantie';
+  data.trip = { name, departure:dep, returnDate:document.getElementById('nt-ret').value, destination:document.getElementById('nt-dest').value.trim(), travelers:document.getElementById('nt-travelers').value.trim() };
+  if (isNew) {
+    const tpl = document.getElementById('nt-template').value;
+    data.items = tpl === 'default' ? DEFAULT_TEMPLATE.map((t,i) => ({...t, id:String(i+1), done:false})) : [];
+  }
+  persist();
+  showHome();
+}
+
+load();
+updateHome();
+</script>
+
+</body>
+</html>
